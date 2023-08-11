@@ -1,8 +1,7 @@
 package Qchain;
 
 
-import com.google.gson.GsonBuilder;
-
+import java.security.Security;
 import java.util.ArrayList;
 
 
@@ -11,31 +10,30 @@ public class QChain {
 
     public static ArrayList<Block> blockchain = new ArrayList<>();
     public static int difficulty = 5;
+    public static Wallet walletA;
+    public static Wallet walletB;
 
     public static void main(String[] args) {
+        // Setup Bouncey castle as a Security Provider
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
-        blockchain.add(new Block("Hi im the first block", "0"));
-        System.out.println("Trying to Mine block 1... ");
-        blockchain.get(0).mineBlock(difficulty);
+        //Create the new wallets
+        walletA = new Wallet();
+        walletB = new Wallet();
 
-        blockchain.add(new Block("Yo im the second block",blockchain.get(blockchain.size()-1).hash));
-        System.out.println("Trying to Mine block 2... ");
-        blockchain.get(1).mineBlock(difficulty);
+        //Test public and private keys
+        System.out.println("Private and public keys:");
+        System.out.println(StringUtil.getStringFromKey(walletA.privateKey));
+        System.out.println(StringUtil.getStringFromKey(walletA.publicKey));
 
-        blockchain.add(new Block("Hey im the third block",blockchain.get(blockchain.size()-1).hash));
-        System.out.println("Trying to Mine block 3... ");
-        blockchain.get(2).mineBlock(difficulty);
+        //Create a test transaction from WalletA to walletB
+        Transaction transaction = new Transaction(walletA.publicKey, walletB.publicKey, 5, null);
+        transaction.generateSignature(walletA.privateKey);
 
-        System.out.println("\nBlockchain is Valid: " + isChainValid());
+        //Verify the signature works and verify it from the public key
+        System.out.println("Is signature verified");
+        System.out.println(transaction.verifySignature());
 
-        String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
-        System.out.println("\nThe block chain: ");
-        System.out.println(blockchainJson);
-
-        Wallet wallet = new Wallet();
-        System.out.println("Wallet's KeyPair");
-        System.out.println(wallet.privateKey);
-        System.out.println(wallet.publicKey);
     }
 
     public static Boolean isChainValid() {
